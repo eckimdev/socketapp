@@ -1,22 +1,26 @@
+var moment = require('moment');
 //io = io.listen(http.createServer(app));
 module.exports = function (io) {
   io.on('connection', function(socket){//socket is an 'individual client'
+  console.log('User connected via socket.io!');
 
-    console.log('User connected via socket.io!');
+  socket.on('message', function(message){
+    console.log('Message recieved from client');
 
-    socket.on('message', function(message){
-      console.log('Message recieved: ' + message.text);
-      //send to everybody including the sender
-      io.emit('message', message);
-      //send to everybody except the sender
-      // socket.broadcast.emit('message', message);
-    });
+    message.timestamp == moment().valueOf();
 
-    socket.emit('message', {
-      text: 'Welcome to the chat application!'
-    });
-
+    //send to everybody including the sender
+    io.emit('message', message);
+    //send to everybody except the sender
+    // socket.broadcast.emit('message', message);
   });
+
+  socket.emit('message', {
+    text: 'Welcome to the chat application!',
+    timestamp : moment().valueOf()
+  });
+
+});
 };
 
 /*
