@@ -7,6 +7,13 @@
   </head>
   <body>
     <h3>Welcome to <%= title %></h3>
+    <div class="messages">
+      <!-- Messages go here -->
+    </div>
+    <form id="message-form">
+      <input type="text" name="message">
+      <input type="submit"/>
+    </form>
 
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.2/socket.io.js"></script>
