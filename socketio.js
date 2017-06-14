@@ -6,7 +6,8 @@ module.exports = function (io) {
 
   socket.on('message', function(message){
     console.log('Message recieved from client');
-
+    console.log(message);
+    
     message.timestamp == moment().valueOf();
 
     //send to everybody including the sender
@@ -16,6 +17,7 @@ module.exports = function (io) {
   });
 
   socket.emit('message', {
+    name: 'System',
     text: 'Welcome to the chat application!',
     timestamp : moment().valueOf()
   });
