@@ -1,32 +1,44 @@
 var moment = require('moment');
 //io = io.listen(http.createServer(app));
 module.exports = function (io) {
+
+  var clientInfo = {};
+
   io.on('connection', function(socket){//socket is an 'individual client'
-  console.log('User connected via socket.io!');
+    console.log('User connected via socket.io!');
 
-  socket.on('message', function(message){
-    console.log('Message recieved from client');
-    console.log(message);
-    
-    message.timestamp == moment().valueOf();
+    socket.on('joinRoom', function(req){
+      clientInfo[socket.id] = req;
+      socket.join(req.room);
+      socket.broadcast.to(req.room).emit('message', {
+        name: 'system',
+        text: req.name + ' has joined!',
+        timestamp: moment().valueOf()
+      })
+    });
 
-    //send to everybody including the sender
-    io.emit('message', message);
-    //send to everybody except the sender
-    // socket.broadcast.emit('message', message);
+    socket.on('message', function(message){
+      console.log('Message recieved from client');
+
+      message.timestamp == moment().valueOf();
+      //send to everybody including the sender
+      io.to(clientInfo[socket.id].room).emit('message', message);
+      //send to everybody except the sender
+      // socket.broadcast.emit('message', message);
+    });
+
+    socket.emit('message', {
+      name: 'System',
+      text: 'Welcome to the chat application!',
+      timestamp : moment().valueOf()
+    });
+
   });
 
-  socket.emit('message', {
-    name: 'System',
-    text: 'Welcome to the chat application!',
-    timestamp : moment().valueOf()
-  });
-
-});
 };
 
 /*
-  boilerplate code
+boilerplate code
 */
 
 // module.exports = function (io) {
@@ -53,10 +65,10 @@ module.exports = function (io) {
 
 
 /*
-  tldr
-  when you have things in another
-  folder that you want to pass around
-  create an object and export it
+tldr
+when you have things in another
+folder that you want to pass around
+create an object and export it
 */
 // var socketio = require('socket.io');
 // var io = socketio();
