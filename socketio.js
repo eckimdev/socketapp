@@ -9,31 +9,65 @@ module.exports = function (io) {
 
     socket.on('joinRoom', function(req){
       clientInfo[socket.id] = req;
+      console.log(clientInfo)
       socket.join(req.room);
-      socket.broadcast.to(req.room).emit('message', {
-        name: 'system',
-        text: req.name + ' has joined!',
-        timestamp: moment().valueOf()
-      })
+      socket.broadcast.to(req.room).emit('message', sysMsg(req.name + ' has joined!'));
     });
 
     socket.on('message', function(message){
       console.log('Message recieved from client');
 
-      message.timestamp == moment().valueOf();
-      //send to everybody including the sender
-      io.to(clientInfo[socket.id].room).emit('message', message);
-      //send to everybody except the sender
-      // socket.broadcast.emit('message', message);
+      if(message.text === '@currentUsers'){
+        sendCurrentUsers(socket);
+      }
+      else{
+        message.timestamp == moment().valueOf();
+        //send to everybody including the sender
+        io.to(clientInfo[socket.id].room).emit('message', message);
+        //send to everybody except the sender
+        // socket.broadcast.emit('message', message);
+      }
+
     });
 
-    socket.emit('message', {
-      name: 'System',
-      text: 'Welcome to the chat application!',
-      timestamp : moment().valueOf()
+    socket.emit('message', sysMsg('Welcome to the chat application!'));
+
+    socket.on('disconnect', function(){
+      var userData = clientInfo[socket.id];
+      if(typeof clientInfo[socket.id] !== 'undefined'){
+        socket.leave(userData.room)
+        io.to(userData.room).emit('message', sysMsg(userData.name + ' has left!'));
+        delete clientInfo[socket.id];
+      }
     });
 
   });
+
+  function sysMsg(message){
+      return {
+        name: 'System',
+        text: message,
+        timestamp: moment().valueOf()
+      }
+  }
+
+  function sendCurrentUsers(socket){
+    var info = clientInfo[socket.id];
+    users = [];
+    if (typeof info === 'undefined'){
+      return;
+    }
+
+    Object.keys(clientInfo)//get an array of 'keys' in the object
+    .forEach(function(socketId, index){
+      var userInfo = clientInfo[socketId];
+      if(info.room === userInfo.room){
+        users.push(userInfo.name);
+      }
+    });
+
+    socket.emit('message', sysMsg('Current Users: ' + users.join(' ')));
+  }
 
 };
 
